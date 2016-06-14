@@ -1,5 +1,8 @@
 package com.example.dsebuuma.forecast;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.format.Time;
 import android.util.Log;
 
@@ -10,6 +13,13 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 
 public class WeatherDataParser {
+    private final String LOG_TAG = WeatherDataParser.class.getSimpleName();
+    private Context context;
+
+    public WeatherDataParser(Context c) {
+        this.context = c;
+    }
+
     /**
      * Take the String representing the complete forecast in JSON Format and
      * pull out the data we need to construct the Strings needed for the wireframes.
@@ -17,7 +27,7 @@ public class WeatherDataParser {
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
-    public static String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
+    public String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
             throws JSONException {
         final String LOG_TAG = WeatherDataParser.class.getSimpleName();
 
@@ -91,7 +101,7 @@ public class WeatherDataParser {
     /* The date/time conversion code is going to be moved outside the asynctask later,
          * so for convenience we're breaking it out into its own method now.
          */
-    private static String getReadableDateString(long time){
+    private String getReadableDateString(long time){
         // Because the API returns a unix timestamp (measured in seconds),
         // it must be converted to milliseconds in order to be converted to valid date.
         SimpleDateFormat shortenedDateFormat = new SimpleDateFormat("EEE MMM dd");
@@ -101,12 +111,28 @@ public class WeatherDataParser {
     /**
      * Prepare the weather high/lows for presentation.
      */
-    private static String formatHighLows(double high, double low) {
+    private String formatHighLows(double high, double low) {
         // For presentation, assume the user doesn't care about tenths of a degree.
-        long roundedHigh = Math.round(high);
-        long roundedLow = Math.round(low);
+//        long roundedHigh = Math.round(high);
+//        long roundedLow = Math.round(low);
+//
+//        String highLowStr = roundedHigh + "/" + roundedLow;
+//        return highLowStr;
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this.context);
+        String unitType = sharedPref.getString(
+                this.context.getString(R.string.pref_unit_key),
+                this.context.getString(R.string.pref_unit_metric));
 
-        String highLowStr = roundedHigh + "/" + roundedLow;
-        return highLowStr;
+        if(unitType.equals(this.context.getString(R.string.pref_unit_imperial))) {
+            high = (high * 1.8) + 32;
+            low = (low * 1.8) + 32;
+        }else{
+            Log.d(LOG_TAG, "Units not found: " + unitType);
+        }
+
+        long roundHigh = Math.round(high);
+        long roundLow = Math.round(low);
+
+        return roundHigh + "/" + roundLow;
     }
 }

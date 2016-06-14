@@ -1,8 +1,11 @@
 package com.example.dsebuuma.forecast;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -15,7 +18,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 
@@ -26,12 +28,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ForecastFragment extends Fragment {
 
     private ArrayAdapter<String> forecastAdapter;
+    private String locationQuery;
 
     public ForecastFragment() {
     }
@@ -48,16 +50,17 @@ public class ForecastFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        String[] data = {
-            "Mon 6/23 - Sunny - 31/17",
-            "Tue 6/24 - Foggy - 21/8",
-            "Wed 6/25 - Cloudy - 22/17",
-            "Thurs 6/26 - Rainy - 18/11",
-            "Fri 6/27 - Foggy - 21/10",
-            "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
-            "Sun 6/29 - Sunny - 20/7"
-        };
-        List<String> weekForeCast = new ArrayList<String>(Arrays.asList(data));
+//        String[] data = {
+//            "Mon 6/23 - Sunny - 31/17",
+//            "Tue 6/24 - Foggy - 21/8",
+//            "Wed 6/25 - Cloudy - 22/17",
+//            "Thurs 6/26 - Rainy - 18/11",
+//            "Fri 6/27 - Foggy - 21/10",
+//            "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
+//            "Sun 6/29 - Sunny - 20/7"
+//        };
+//        List<String> weekForeCast = new ArrayList<String>(Arrays.asList(data));
+        List<String> weekForeCast = new ArrayList<String>();
 
         forecastAdapter = new ArrayAdapter<String>(
             getContext(),
@@ -72,12 +75,21 @@ public class ForecastFragment extends Fragment {
         foreCastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String toastContent = forecastAdapter.getItem(position);
-                Toast.makeText(getContext(), toastContent, Toast.LENGTH_SHORT).show();
+                String forecast = forecastAdapter.getItem(position);
+//                Toast.makeText(getContext(), forecast, Toast.LENGTH_SHORT).show();
+                Intent detailActivityIntent = new Intent(getContext(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, forecast);
+                startActivity(detailActivityIntent);
             }
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
     }
 
     @Override
@@ -90,17 +102,27 @@ public class ForecastFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            FetchWeatherTask weatherTask = new FetchWeatherTask();
-            weatherTask.execute();
+            updateWeather();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private void updateWeather() {
+        FetchWeatherTask weatherTask = new FetchWeatherTask();
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        locationQuery = sharedPref.getString(
+                getString(R.string.preference_key),
+                getString(R.string.preference_default_value)
+        );
+
+        weatherTask.execute();
+    }
+
     public class FetchWeatherTask extends AsyncTask<Void, Void, String[]> {
         private static final String OPEN_WEATHER_MAP_API_KEY = "a7bd52a89ef7f20cf8209cb040c3a5f1"; //Place your API Key here
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName(); //Create you won log tag
-        private String locationQuery = "Kampala";
 
         @Override
         protected void onPreExecute() {
@@ -189,7 +211,7 @@ public class ForecastFragment extends Fragment {
             }
 
             try {
-                return WeatherDataParser.getWeatherDataFromJson(forecastJsonStr, numDays);
+                return new WeatherDataParser(getContext()).getWeatherDataFromJson(forecastJsonStr, numDays);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
