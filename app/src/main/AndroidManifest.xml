@@ -32,6 +32,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.dsebuuma.forecast.MainActivity" />
         </activity>
+        <provider
+            android:authorities="com.example.dsebuuma.forecast.app"
+            android:name=".data.WeatherProvider">
+        </provider>
     </application>
 
 </manifest>
