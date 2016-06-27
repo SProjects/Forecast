@@ -212,6 +212,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         weatherTask.execute(locationQuery);
     }
 
+    public void onLocationChanged() {
+        updateWeather();
+        getLoaderManager().initLoader(FORECAST_LOADER, null, this);
+    }
+
 //    public class FetchWeatherTask extends AsyncTask<Void, Void, String[]> {
 //        private static final String OPEN_WEATHER_MAP_API_KEY = "a7bd52a89ef7f20cf8209cb040c3a5f1"; //Place your API Key here
 //        private final String LOG_TAG = FetchWeatherTask.class.getSimpleName(); //Create you won log tag
