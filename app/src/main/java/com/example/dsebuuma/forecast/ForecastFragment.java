@@ -1,5 +1,8 @@
 package com.example.dsebuuma.forecast;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -177,10 +180,19 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void updateWeather() {
-        Intent intent = new Intent(getActivity(), ForecastService.class);
-        intent.putExtra(ForecastService.LOCATION_QUERY_EXTRA,
-                Utility.getPreferredLocation(getActivity()));
-        getActivity().startService(intent);
+        Intent alarmIntent = new Intent(getActivity(), ForecastService.AlarmReceiver.class);
+        alarmIntent.putExtra(
+                ForecastService.LOCATION_QUERY_EXTRA,
+                Utility.getPreferredLocation(getActivity())
+        );
+
+        PendingIntent pi = PendingIntent.getActivity(
+                getActivity(), 0,
+                alarmIntent, PendingIntent.FLAG_ONE_SHOT
+        );
+
+        AlarmManager am = (AlarmManager)getActivity().getSystemService(Context.ALARM_SERVICE);
+        am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5000, pi);
     }
 
     @Override

@@ -1,8 +1,10 @@
 package com.example.dsebuuma.forecast.service;
 
 import android.app.IntentService;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -11,6 +13,7 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 
 import com.example.dsebuuma.forecast.BuildConfig;
+import com.example.dsebuuma.forecast.Utility;
 import com.example.dsebuuma.forecast.data.WeatherContract;
 
 import org.json.JSONArray;
@@ -303,4 +306,13 @@ public class ForecastService extends IntentService {
         return locationId;
     }
 
+    public static class AlarmReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Intent sendIntent = new Intent(context, ForecastService.class);
+            sendIntent.putExtra(ForecastService.LOCATION_QUERY_EXTRA,
+                    Utility.getPreferredLocation(context));
+            context.startService(sendIntent);
+        }
+    }
 }
