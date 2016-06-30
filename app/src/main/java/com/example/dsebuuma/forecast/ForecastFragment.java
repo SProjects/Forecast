@@ -1,6 +1,5 @@
 package com.example.dsebuuma.forecast;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -60,6 +59,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private ForecastAdapter forecastAdapter;
     private String locationQuery;
 
+    public interface Callback {
+        public void onItemSelected(Uri dateUri);
+    }
+
     public ForecastFragment() {
     }
 
@@ -105,69 +108,27 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-//        String locationSetting = Utility.getPreferredLocation(getActivity());
-//
-//        // Sort order:  Ascending, by date.
-//        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-//        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
-//                locationSetting, System.currentTimeMillis());
-//
-//        Cursor cur = getActivity().getContentResolver().query(weatherForLocationUri,
-//                null, null, null, sortOrder);
-
         forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
 
-//        String[] data = {
-//            "Mon 6/23 - Sunny - 31/17",
-//            "Tue 6/24 - Foggy - 21/8",
-//            "Wed 6/25 - Cloudy - 22/17",
-//            "Thurs 6/26 - Rainy - 18/11",
-//            "Fri 6/27 - Foggy - 21/10",
-//            "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
-//            "Sun 6/29 - Sunny - 20/7"
-//        };
-//        List<String> weekForeCast = new ArrayList<String>(Arrays.asList(data));
-//        List<String> weekForeCast = new ArrayList<String>();
-//
-//        forecastAdapter = new ArrayAdapter<String>(
-//            getContext(),
-//            R.layout.list_item_forecast,
-//            R.id.list_item_forecast_textview,
-//            weekForeCast
-//        );
-//
         ListView foreCastListView = (ListView) rootView.findViewById(R.id.list_view_forecast);
         foreCastListView.setAdapter(forecastAdapter);
 
         foreCastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 // CursorAdapter returns a cursor at the correct position for getItem(), or null
                 // if it cannot seek to that position.
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
                     String locationSetting = Utility.getPreferredLocation(getActivity());
-                    Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .setData(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                    ((Callback) getActivity())
+                            .onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
                                     locationSetting, cursor.getLong(COL_WEATHER_DATE)
                             ));
-                    startActivity(intent);
                 }
             }
         });
-
-//
-//        foreCastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                String forecast = forecastAdapter.getItem(position);
-////                Toast.makeText(getContext(), forecast, Toast.LENGTH_SHORT).show();
-//                Intent detailActivityIntent = new Intent(getContext(), DetailActivity.class)
-//                        .putExtra(Intent.EXTRA_TEXT, forecast);
-//                startActivity(detailActivityIntent);
-//            }
-//        });
 
         return rootView;
     }

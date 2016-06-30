@@ -8,7 +8,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback {
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     private String mLocation;
@@ -63,6 +63,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onItemSelected(Uri contentUri) {
+        if (mTwoPane) {
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            Bundle args = new Bundle();
+            args.putParcelable(DetailFragment.DETAIL_URI, contentUri);
+
+            DetailFragment fragment = new DetailFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.weather_detail_container, fragment, DETAILFRAGMENT_TAG)
+                    .commit();
+        } else {
+            Intent intent = new Intent(this, DetailActivity.class)
+                    .setData(contentUri);
+            startActivity(intent);
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
@@ -71,9 +93,14 @@ public class MainActivity extends AppCompatActivity {
         if (location != null && !location.equals(mLocation)) {
             ForecastFragment ff = (ForecastFragment)getSupportFragmentManager()
                     .findFragmentById(R.id.fragment_forecast);
-
             if ( null != ff ) {
                 ff.onLocationChanged();
+            }
+
+            DetailFragment df = (DetailFragment)getSupportFragmentManager()
+                    .findFragmentByTag(DETAILFRAGMENT_TAG);
+            if ( null != df ) {
+                df.onLocationChanged(location);
             }
             mLocation = location;
         }
