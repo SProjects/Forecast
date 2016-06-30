@@ -23,7 +23,7 @@ import com.example.dsebuuma.forecast.data.WeatherContract;
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
-//    private ArrayAdapter<String> forecastAdapter;
+//    private ArrayAdapter<String> mForecastAdapter;
     private static final int FORECAST_LOADER = 0;
 
     private static final String[] FORECAST_COLUMNS = {
@@ -56,11 +56,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
 
-    private ForecastAdapter forecastAdapter;
+    private ForecastAdapter mForecastAdapter;
     private String locationQuery;
 
     private ListView mListView;
     private int mPosition = ListView.INVALID_POSITION;
+    private boolean mUseTodayLayout;
 
     private static final String SELECTED_KEY = "selected_position";
 
@@ -99,7 +100,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        forecastAdapter.swapCursor(data);
+        mForecastAdapter.swapCursor(data);
 
         if (mPosition != ListView.INVALID_POSITION) {
             mListView.smoothScrollToPosition(mPosition);
@@ -108,7 +109,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        forecastAdapter.swapCursor(null);
+        mForecastAdapter.swapCursor(null);
     }
 
     @Override
@@ -117,10 +118,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
+        mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
 
         mListView = (ListView) rootView.findViewById(R.id.list_view_forecast);
-        mListView.setAdapter(forecastAdapter);
+        mListView.setAdapter(mForecastAdapter);
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -142,6 +143,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
         }
+
+        mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
         return rootView;
     }
 
@@ -196,6 +199,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLocationChanged() {
         updateWeather();
         getLoaderManager().initLoader(FORECAST_LOADER, null, this);
+    }
+
+    public void setUseTodayLayout(boolean useTodayLayout) {
+        mUseTodayLayout = useTodayLayout;
+        if (mForecastAdapter != null) {
+            mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
+        }
     }
 
 //    public class FetchWeatherTask extends AsyncTask<Void, Void, String[]> {
@@ -302,9 +312,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 //        protected void onPostExecute(String[] results) {
 //            super.onPostExecute(results);
 //            if (results != null) {
-//                forecastAdapter.clear();
+//                mForecastAdapter.clear();
 //                for(String dayForecastStr : results) {
-//                    forecastAdapter.add(dayForecastStr);
+//                    mForecastAdapter.add(dayForecastStr);
 //                }
 //                // New data is back from the server.  Hooray!
 //            }
