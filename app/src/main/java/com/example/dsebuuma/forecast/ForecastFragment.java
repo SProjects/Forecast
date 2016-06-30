@@ -59,6 +59,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private ForecastAdapter forecastAdapter;
     private String locationQuery;
 
+    private ListView mListView;
+    private int mPosition = ListView.INVALID_POSITION;
+
+    private static final String SELECTED_KEY = "selected_position";
+
     public interface Callback {
         public void onItemSelected(Uri dateUri);
     }
@@ -95,6 +100,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         forecastAdapter.swapCursor(data);
+
+        if (mPosition != ListView.INVALID_POSITION) {
+            mListView.smoothScrollToPosition(mPosition);
+        }
     }
 
     @Override
@@ -110,10 +119,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
         forecastAdapter = new ForecastAdapter(getActivity(), null, 0);
 
-        ListView foreCastListView = (ListView) rootView.findViewById(R.id.list_view_forecast);
-        foreCastListView.setAdapter(forecastAdapter);
+        mListView = (ListView) rootView.findViewById(R.id.list_view_forecast);
+        mListView.setAdapter(forecastAdapter);
 
-        foreCastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -130,6 +139,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             }
         });
 
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
         return rootView;
     }
 
@@ -171,6 +183,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         );
 
         weatherTask.execute(locationQuery);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if ( mPosition != ListView.INVALID_POSITION ) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     public void onLocationChanged() {

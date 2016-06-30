@@ -6,6 +6,7 @@
     tools:context="com.example.dsebuuma.forecast.ForecastFragment">
 
     <ListView
+        style="@style/ForecastListStyle"
         android:id="@+id/list_view_forecast"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
