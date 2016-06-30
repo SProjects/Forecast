@@ -4,6 +4,14 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Permissions required by the sync adapter -->
+    <uses-permission
+        android:name="android.permission.READ_SYNC_SETTINGS"/>
+    <uses-permission
+        android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+    <uses-permission
+        android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -39,14 +47,35 @@
 
         <provider
             android:name=".data.WeatherProvider"
-            android:authorities="com.example.dsebuuma.forecast.app"
+            android:authorities="@string/content_authority"
             android:enabled="true"
-            android:exported="true">
+            android:exported="false"
+            android:syncable="true">
         </provider>
 
-        <service android:name=".service.ForecastService"/>
+        <!-- SyncAdapter's dummy authentication service -->
+        <service
+            android:name=".sync.ForecastAuthenticatorService">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
 
-        <receiver android:name=".service.ForecastService$AlarmReceiver" android:enabled="true"/>
+        <!-- The SyncAdapter service -->
+        <service
+            android:name=".sync.ForecastSyncService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
+        </service>
+
     </application>
 
 </manifest>
